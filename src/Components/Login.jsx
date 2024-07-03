@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import './Login.css'
 import { Button, Form, Input, message } from 'antd';
 import axios from 'axios';
@@ -6,6 +6,11 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
     const navigate = useNavigate()
+    useEffect(()=>{
+        if(!localStorage.getItem('access_token')){
+            navigate("/")
+        }
+    }, []);
     const onFinish = (values) => {
        axios({
         url:'https://autoapi.dezinfeksiyatashkent.uz/api/auth/signin',
