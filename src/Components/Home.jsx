@@ -54,32 +54,70 @@ export default function Home() {
   // delate method
   const [ochir, setOchir] = useState();
 
-  const deleteButton = (e) =>{
+  const deleteButton = (e) => {
     e.preventDefault();
 
     fetch(`https://autoapi.dezinfeksiyatashkent.uz/api/categories/${ochir}`, {
-      method:'DELETE',
-      headers:{
+      method: 'DELETE',
+      headers: {
         Authorization: `Bearer ${token}`,
       }
     })
-    .then((res)=>res.json())
-    .then((resposible)=>{
-      if (resposible.success === true) {
+      .then((res) => res.json())
+      .then((resposible) => {
+        if (resposible.success === true) {
+          getApi();
+          setIsModalOpen(false);
+          toast.success(resposible.message);
+        } else {
+          toast.error(resposible.message);
+        }
+      })
+  }
+
+  //put method
+  const [bosil, setBosil] = useState(false)
+  const [edit, setEdit] = useState()
+  const getData = data?.filter((data)=>data.id===edit)
+
+  const [editNameEn, setEditNameEn] = useState();
+  const [editNameRu, setEditNameRu] = useState();
+  const [editArt, setEditArt] = useState();
+
+  const tahrirla = (e) =>{
+    e.preventDefault()
+
+    const formData = new FormData();
+    formData.append("name_en", editNameEn);
+    formData.append("name_ru", editNameRu);
+    formData.append("images", editArt);
+
+    fetch(`https://autoapi.dezinfeksiyatashkent.uz/api/categories/${edit}`, {
+      method: 'PUT',
+      headers:{
+        Authorization: `Bearer ${token}`,
+      },
+      body:formData,
+    })
+    .then((resp)=>resp.json())
+    .then((asrorbek)=>{
+      if (asrorbek.success === true) {
         getApi();
         setIsModalOpen(false);
-        toast.success(resposible.message);
+        toast.success(asrorbek.message);
       } else {
-        toast.error(resposible.message);
+        toast.error(asrorbek.message);
       }
     })
   }
- 
+
   //modal js
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const showModal = () => {
+  const showModal = (id) => {
+    setEdit(id)
     setIsModalOpen(true);
+    setBosil(false) 
   };
 
   const handleOk = () => {
@@ -109,22 +147,28 @@ export default function Home() {
 
         <tbody>
           {data.map((item, index) => (
-            <tr key={index}>
+            <tr key={index} onClick={() => setBosil(true)}>
               <td>{item.name_en}</td>
               <td>{item.name_ru}</td>
               <td><img className='img' src={`https://autoapi.dezinfeksiyatashkent.uz/api/uploads/images/${item.image_src}`} alt="" /></td>
-              <td className='put_buttons' onClick={(e)=>setOchir(item.id)}  >
-                <span >
-                  <Popconfirm
-                    title="Delete the task"
-                    description="Are you sure to delete this task?"
-                    okText="Yes"
-                    cancelText="No"
-                    onConfirm={deleteButton}
-                  >
-                    <Button danger type='primary'><DeleteOutlined/></Button>
-                  </Popconfirm>
-                </span>
+              <td className='put_buttons' onClick={(e) => setOchir(item.id)}  >
+            <span>
+              <Popconfirm
+                  title="Delete the task"
+                  description="Are you sure to delete this task?"
+                  okText="Yes"
+                  cancelText="No"
+                  onConfirm={deleteButton}
+                >
+                  <Button danger type='primary'><DeleteOutlined /></Button>
+                </Popconfirm>
+            </span>
+            <span>
+               <Button type="primary" onClick={()=>showModal(item.id)}>
+                  <EditOutlined />
+                </Button>
+            </span>
+                
               </td>
             </tr>
           )
@@ -132,13 +176,27 @@ export default function Home() {
         </tbody>
 
       </table>
-      <Modal title="Basic Modals" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-        <form>
+      <Modal title="Basic Modals" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>{
+        bosil===true
+          ?
+          <form> 
+            <h1>Tahrirlash uchun</h1>
+            <input onChange={(e) => setEditNameEn(e.target.value)} type="text" defaultValue={getData[0]?.name_en} placeholder='nameEn' required />
+            <input onChange={(e) => setEditNameRu(e.target.value)} type="text" defaultValue={getData[0]?.name_ru} placeholder='nameRu' required />
+            <input onChange={(e) => setEditArt(e.target.files[0])} type="file"  accept='images/*' />
+            <button onClick={tahrirla}>Tahrirla</button>
+          </form>
+          :
+          <form>
+          <h1>Qoshish uchun</h1>
           <input onChange={(e) => setNameEn(e.target.value)} type="text" placeholder='nameEn' required />
           <input onChange={(e) => setNameRu(e.target.value)} type="text" placeholder='nameRu' required />
           <input onChange={(e) => setArt(e.target.files[0])} type="file" accept='images/*' />
           <button onClick={Suvonov}>qoshilsin</button>
         </form>
+        }
+
+
       </Modal>
     </div>
   )
